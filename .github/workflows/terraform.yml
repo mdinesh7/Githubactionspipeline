@@ -1,0 +1,67 @@
+# Name of the GitHub Actions workflow
+name: 'Terraform CI/CD'
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push events but only for the "main" branch
+  push:
+    branches:
+      - main
+
+  # Triggers the workflow on pull request events targeted at the "main" branch
+  pull_request:
+    branches:
+      - main
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "terraform"
+  terraform:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    env:
+        # You can set the AWS region here
+        AWS_REGION: "us-east-1" 
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Step 1: Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Configures AWS credentials using the secrets you created
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 3: Sets up Terraform CLI in the runner
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # You can specify the Terraform version here
+          terraform_version: 1.5.0
+
+      # Step 4: Initialize a new or existing Terraform working directory
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      # Step 5: Checks that all Terraform configuration files are formatted correctly
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      # Step 6: Generates a plan for Terraform
+      # This step runs for all pull requests
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        
+      # Step 7: On push to main, apply the Terraform plan
+      # This step is conditional and only runs on a push to the 'main' branch
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
