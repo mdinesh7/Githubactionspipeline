@@ -15,5 +15,5 @@ provider "aws" {
 
 resource "aws_s3_bucket" "avatars" {
   bucket = "my-unique-user-avatars-bucket-12345" # Use a unique name
-  acl    = "private" # This is our intentional error
+  acl    = "private"                             # This is our intentional error
 }
