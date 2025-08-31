@@ -13,3 +13,22 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_s3_bucket" "avatars" {
+  bucket = "my-unique-user-avatars-bucket-12345" # Use a unique name
+}
+
+resource "aws_s3_bucket_ownership_controls" "avatars" {
+  bucket = aws_s3_bucket.avatars.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "avatars" {
+  bucket = aws_s3_bucket.avatars.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
