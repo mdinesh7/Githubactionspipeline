@@ -5,7 +5,7 @@ provider "aws" {
 module "avatar_bucket" {
   source = "../../modules/s3-bucket" # <-- Relative path to the module
 
-  bucket_name = "my-app-dev-avatars-12345" # Unique name
+  bucket_name = "avatars" # Unique name
   tags = {
     Environment = "dev"
     ManagedBy   = "Terraform"
