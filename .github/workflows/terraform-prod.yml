@@ -1,0 +1,59 @@
+# .github/workflows/terraform-prod.yml
+
+name: 'Terraform CI/CD - Prod'
+
+on:
+  pull_request:
+    # Only run this workflow if files in the 'environments/dev' folder change
+    paths:
+      - 'environments/prod/**'
+      - 'modules/**'
+  push:
+    branches:
+      - main
+    # Also apply the path filter to the push trigger
+    paths:
+      - 'environments/prod/**'
+      - 'modules/**'
+
+jobs:
+  terraform:
+    name: 'Terraform - Prod'
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: "us-east-1" 
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # All subsequent steps now run in the 'dev' directory
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: environments/prod
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+        working-directory: environments/prod
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        working-directory: environments/prod
+        
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
+        working-directory: environments/prod

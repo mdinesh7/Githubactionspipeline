@@ -6,7 +6,7 @@ terraform {
     bucket = "your-initials-tf-state-bucket"
 
     # This key defines the "folder" structure inside the S3 bucket for your state file
-    key = "global/s3/terraform.tfstate"
+    key = "environments/prod/terraform.tfstate"
 
     region = "us-east-1"
 
